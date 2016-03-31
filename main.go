@@ -11,8 +11,8 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/jackpal/Taipei-Torrent/torrent"
-	"github.com/jackpal/Taipei-Torrent/tracker"
+	"github.com/ansonwzj/CPSC416Taipei/torrent"
+	"github.com/ansonwzj/CPSC416Taipei/tracker"
 	"golang.org/x/net/proxy"
 )
 
