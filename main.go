@@ -40,6 +40,7 @@ var (
 	execOnSeeding       = flag.String("execOnSeeding", "", "Command to execute when torrent has fully downloaded and has begun seeding.")
 	quickResume         = flag.Bool("quickResume", false, "Save torrenting data to resume faster. '-initialCheck' should be set to false, to prevent hash check on resume.")
 	maxActive           = flag.Int("maxActive", 16, "How many torrents should be active at a time. Torrents added beyond this value are queued.")
+	loggerAddress       = flag.String("loggerAddress", "", "This is meant for the testing environment, this is where torrentdata is logged for aggregation in swarm statistics")
 )
 
 func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
