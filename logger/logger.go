@@ -13,16 +13,20 @@ type LoggerRPC struct{}
 
 type LogMessage struct {
 	ClientName     string
-	DownloadedBits int64
-	UploadedBits   int64
+	DownloadedBits uint64
+	UploadedBits   uint64
 	TimeStamp      int
+}
+
+type LogReply struct {
 }
 
 var clientMap map[string]LogMessage = make(map[string]LogMessage)
 var startTime time.Time = time.Now()
 
-func (this *LoggerRPC) Log(logMessage LogMessage) {
-	clientMap[logMessage.ClientName] = logMessage
+func (this *LoggerRPC) Log(logMessage *LogMessage, logReply *LogReply) error {
+	clientMap[logMessage.ClientName] = *logMessage
+	return nil
 }
 
 func ReportSwarmStatus() {

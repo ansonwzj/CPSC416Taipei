@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ansonwzj/CPSC416Taipei/logger"
 	bencode "github.com/jackpal/bencode-go"
 	"github.com/nictuku/dht"
 	"github.com/nictuku/nettools"
@@ -353,10 +354,10 @@ func (ts *TorrentSession) Header() (header []byte) {
 // Can be called from any goroutine.
 func (ts *TorrentSession) HintNewPeer(peer string) {
 	if len(ts.hintNewPeerChan) < cap(ts.hintNewPeerChan) { //We don't want to block the main loop because a single torrent is having problems
-	select {
-	case ts.hintNewPeerChan <- peer:
-	case <-ts.ended:
-	}
+		select {
+		case ts.hintNewPeerChan <- peer:
+		case <-ts.ended:
+		}
 	} else {
 		// log.Println("[", ts.M.Info.Name, "] New peer hint failed, because DoTorrent() hasn't been clearing out the channel.")
 	}
@@ -365,10 +366,10 @@ func (ts *TorrentSession) HintNewPeer(peer string) {
 func (ts *TorrentSession) tryNewPeer(peer string) bool {
 	if (ts.Session.HaveTorrent || ts.Session.FromMagnet) && len(ts.peers) < MAX_NUM_PEERS {
 		if _, ok := ts.Session.OurAddresses[peer]; !ok {
-		if _, ok := ts.peers[peer]; !ok {
-			go ts.connectToPeer(peer)
-			return true
-		}
+			if _, ok := ts.peers[peer]; !ok {
+				go ts.connectToPeer(peer)
+				return true
+			}
 		} else {
 			//	log.Println("[", ts.M.Info.Name, "] New peer hint rejected, because it's one of our addresses (", peer, ")")
 		}
@@ -418,10 +419,10 @@ func (ts *TorrentSession) AcceptNewPeer(btconn *BtConn) {
 // Can be called from any goroutine
 func (ts *TorrentSession) AddPeer(btconn *BtConn) {
 	if len(ts.addPeerChan) < cap(ts.addPeerChan) { //We don't want to block the main loop because a single torrent is having problems
-	select {
-	case ts.addPeerChan <- btconn:
-	case <-ts.ended:
-	}
+		select {
+		case ts.addPeerChan <- btconn:
+		case <-ts.ended:
+		}
 	} else {
 		// log.Println("[", ts.M.Info.Name, "] Add peer failed, because DoTorrent() hasn't been clearing out the channel.")
 		btconn.conn.Close()
@@ -547,6 +548,16 @@ func (ts *TorrentSession) Shutdown() (err error) {
 	}
 
 	return
+}
+
+func (ts *TorrentSession) SendLog() {
+	var logReply logger.LogReply
+	loggerMessage := logger.LogMessage{
+		ClientName:     "HolyShit",
+		DownloadedBits: ts.Session.Downloaded,
+		UploadedBits:   ts.Session.Uploaded,
+		TimeStamp:      0}
+	_ = ts.flags.LoggerService.Call("LoggerRPC.Log", &loggerMessage, &logReply)
 }
 
 func (ts *TorrentSession) DoTorrent() {
@@ -680,6 +691,12 @@ func (ts *TorrentSession) DoTorrent() {
 				ratio,
 				ts.goodPieces,
 				ts.totalPieces)
+
+			//Send Statistics
+			if ts.flags.LoggerService != nil {
+				ts.SendLog()
+			}
+
 			if ts.totalPieces != 0 && ts.goodPieces == ts.totalPieces && ratio >= ts.flags.SeedRatio {
 				log.Println("[", ts.M.Info.Name, "] Achieved target seed ratio", ts.flags.SeedRatio)
 				return

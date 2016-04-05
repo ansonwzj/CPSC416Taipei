@@ -3,6 +3,7 @@ package torrent
 import (
 	"encoding/hex"
 	"log"
+	"net/rpc"
 	"os"
 	"os/signal"
 
@@ -42,9 +43,13 @@ type TorrentFlags struct {
 
 	//How many torrents should be active at a time
 	MaxActive int
+
+	//The address of the logger server to send results to
+	LoggerService *rpc.Client
 }
 
 func RunTorrents(flags *TorrentFlags, torrentFiles []string) (err error) {
+
 	conChan, listenPort, err := ListenForPeerConnections(flags)
 	if err != nil {
 		log.Println("Couldn't listen for peers connection: ", err)
@@ -67,7 +72,7 @@ func RunTorrents(flags *TorrentFlags, torrentFiles []string) (err error) {
 		for torrentFile := range createChan {
 			ts, err := NewTorrentSession(flags, torrentFile, uint16(listenPort))
 			if err != nil {
-				log.Println("Couldn't create torrent session for " + torrentFile + " .", err)
+				log.Println("Couldn't create torrent session for "+torrentFile+" .", err)
 				doneChan <- &TorrentSession{}
 			} else {
 				log.Printf("Created torrent session for %s", ts.M.Info.Name)
