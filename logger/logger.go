@@ -2,29 +2,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/ansonwzj/CPSC416Taipei/loggerdata"
 	"log"
 	"net"
 	"net/http"
 	"net/rpc"
+	"os"
 	"time"
 )
 
 type LoggerRPC struct{}
 
-type LogMessage struct {
-	ClientName     string
-	DownloadedBits uint64
-	UploadedBits   uint64
-	TimeStamp      int
-}
-
-type LogReply struct {
-}
-
-var clientMap map[string]LogMessage = make(map[string]LogMessage)
+var clientMap map[string]loggerdata.LogMessage = make(map[string]loggerdata.LogMessage)
 var startTime time.Time = time.Now()
 
-func (this *LoggerRPC) Log(logMessage *LogMessage, logReply *LogReply) error {
+func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerdata.LogReply) error {
+	log.Println("Received message from client")
 	clientMap[logMessage.ClientName] = *logMessage
 	return nil
 }
@@ -41,10 +34,19 @@ func ReportSwarmStatus() {
 }
 
 func ServeRPC() {
+
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: logger.exe ip port")
+	}
+
+	ip := os.Args[1]
+	port := os.Args[2]
+
 	logger := new(LoggerRPC)
 	rpc.Register(logger)
 	rpc.HandleHTTP()
-	l, e := net.Listen("tcp", ":0")
+	log.Println("listening on" + ip + ":" + port)
+	l, e := net.Listen("tcp", ip+":"+port)
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}

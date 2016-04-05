@@ -51,11 +51,12 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 	}
 
 	//Contact and establish link with logger
-	var loggerService *rpc.Client
+	var loggerService *rpc.Client = nil
 	if *loggerAddress != "" {
-		loggerService, err = rpc.Dial("tcp", *loggerAddress)
+		log.Println("setting up service for logger")
+		loggerService, err = rpc.DialHTTP("tcp", *loggerAddress)
 		if err != nil {
-			log.Println("Error contacting the logger")
+			log.Println(err)
 		}
 	}
 

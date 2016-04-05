@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ansonwzj/CPSC416Taipei/logger"
+	"github.com/ansonwzj/CPSC416Taipei/loggerdata"
 	bencode "github.com/jackpal/bencode-go"
 	"github.com/nictuku/dht"
 	"github.com/nictuku/nettools"
@@ -551,13 +551,17 @@ func (ts *TorrentSession) Shutdown() (err error) {
 }
 
 func (ts *TorrentSession) SendLog() {
-	var logReply logger.LogReply
-	loggerMessage := logger.LogMessage{
+	var logReply loggerdata.LogReply
+	loggerMessage := loggerdata.LogMessage{
 		ClientName:     "HolyShit",
 		DownloadedBits: ts.Session.Downloaded,
 		UploadedBits:   ts.Session.Uploaded,
 		TimeStamp:      0}
-	_ = ts.flags.LoggerService.Call("LoggerRPC.Log", &loggerMessage, &logReply)
+	err := ts.flags.LoggerService.Call("LoggerRPC.Log", &loggerMessage, &logReply)
+	if err != nil {
+		log.Println("Problem setting up logger connection")
+		log.Println(err)
+	}
 }
 
 func (ts *TorrentSession) DoTorrent() {
@@ -694,6 +698,7 @@ func (ts *TorrentSession) DoTorrent() {
 
 			//Send Statistics
 			if ts.flags.LoggerService != nil {
+				log.Println("Sending to logger")
 				ts.SendLog()
 			}
 
