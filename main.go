@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net/rpc"
 	"os"
 	"os/signal"
 	"path"
@@ -48,6 +49,17 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 	if err != nil {
 		return
 	}
+
+	//Contact and establish link with logger
+	var loggerService *rpc.Client = nil
+	if *loggerAddress != "" {
+		log.Println("setting up service for logger")
+		loggerService, err = rpc.DialHTTP("tcp", *loggerAddress)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	flags = &torrent.TorrentFlags{
 		Dial:                dialer,
 		Port:                portFromFlags(),
@@ -67,6 +79,7 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		ExecOnSeeding:      *execOnSeeding,
 		QuickResume:        *quickResume,
 		MaxActive:          *maxActive,
+		LoggerService:      loggerService,
 	}
 	return
 }
