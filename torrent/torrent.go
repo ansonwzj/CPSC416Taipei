@@ -727,7 +727,7 @@ func (ts *TorrentSession) chokePeers() (err error) {
 	for _, peer := range peers {
 		if peer.peer_interested {
 			peer.computeDownloadRate()
-			// log.Printf("%s %g bps", peer.address, peer.DownloadBPS())
+			log.Printf("%s %g bps", peer.address, peer.DownloadBPS())
 			chokers = append(chokers, Choker(peer))
 		}
 	}

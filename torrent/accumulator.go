@@ -1,6 +1,9 @@
 package torrent
 
-import "time"
+import (
+		"time"
+		// "log"
+)
 
 // An accumulator that keeps track of the rate of increase.
 type Accumulator struct {
@@ -11,7 +14,8 @@ type Accumulator struct {
 	total         int64
 }
 
-func NewAccumulator(now time.Time, maxRatePeriod time.Duration) (acc *Accumulator) {
+func NewAccumulator(now time.Time, maxRatePeriod time.Duration) (
+	acc *Accumulator) {
 	acc = &Accumulator{}
 	acc.maxRatePeriod = maxRatePeriod
 	acc.rateSince = now.Add(time.Second * -1)
@@ -23,7 +27,7 @@ func NewAccumulator(now time.Time, maxRatePeriod time.Duration) (acc *Accumulato
 
 func (a *Accumulator) Add(now time.Time, amount int64) {
 	a.total += amount
-	a.rate = (a.rate*float64(a.last.Sub(a.rateSince)) + float64(amount)) /
+	a.rate = 1000000*(a.rate*float64(a.last.Sub(a.rateSince)) + float64(amount)) /
 		float64(now.Sub(a.rateSince))
 	a.last = now
 	newRateSince := now.Add(-a.maxRatePeriod)

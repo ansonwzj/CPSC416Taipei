@@ -3,6 +3,7 @@ package torrent
 import (
 	"math/rand"
 	"sort"
+	"log"
 )
 
 // BitTorrent choking policy.
@@ -57,7 +58,7 @@ const OPTIMISTIC_UNCHOKE_COUNT = 3
 
 func (ccp *ClassicChokePolicy) Choke(chokers []Choker) (unchokeCount int, err error) {
 	sort.Sort(ByDownloadBPS(chokers))
-
+	log.Printf("%v", chokers)
 	optimistIndex := ccp.findOptimist(chokers)
 	if optimistIndex >= 0 {
 		if optimistIndex < OPTIMISTIC_UNCHOKE_INDEX {

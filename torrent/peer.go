@@ -43,6 +43,12 @@ type peerState struct {
 }
 
 func (p *peerState) creditDownload(length int64) {
+	log.Println(p.downloaded)
+	if p.downloaded.total == 0 {
+		test := NewAccumulator(time.Now(), 0)
+		p.downloaded = *test
+	}
+
 	p.downloaded.Add(time.Now(), length)
 }
 
