@@ -7,7 +7,12 @@ set loggerPort="9000"
 set workingDir=%cd%
 cd ..\..\..\..\bin 
 
-rm -rf \test
+for /L %%a in (1,1,%numberOfClients%) do (
+  echo "clean" > ..\test\downloader\%%a\%filename%
+  echo "clean" > ..\test\seed\%filename%
+)
+rmdir /s /q \test
+
 mkdir ..\test
 for /L %%a in (1,1,%numberOfClients%) do (
   mkdir ..\test\downloader\%%a

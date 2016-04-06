@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/ansonwzj/CPSC416Taipei/loggerdata"
 	"log"
@@ -14,23 +15,33 @@ import (
 type LoggerRPC struct{}
 
 var clientMap map[string]loggerdata.LogMessage = make(map[string]loggerdata.LogMessage)
+var clientList *list.List = list.New()
 var startTime time.Time = time.Now()
 
 func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerdata.LogReply) error {
 	//log.Println("Received message from client")
+	if _, ok := clientMap[logMessage.ClientName]; !ok {
+		clientList.PushBack(logMessage.ClientName)
+	}
+	logMessage.TimeStamp = time.Since(startTime).Seconds()
 	clientMap[logMessage.ClientName] = *logMessage
+
 	return nil
 }
 
 func ReportSwarmStatus() {
 	format := "%-20s %-20s %-20s %-20s\n"
-	fmt.Printf(format, "DownloadedBits", "UploadedBits", "Timestamp", "ClientID:")
-	for key, value := range clientMap {
+	fmt.Printf(format, "ClientID:", "DownloadedBits", "UploadedBits", "Timestamp")
+
+	for e := clientList.Front(); e != nil; e = e.Next() {
+		clientID := e.Value.(string)
+		logMessage := clientMap[clientID]
+
 		fmt.Printf("%-20s %-20d %-20d %-20f\n",
-			key,
-			value.DownloadedBits,
-			value.UploadedBits,
-			time.Since(startTime).Seconds())
+			clientID,
+			logMessage.DownloadedBits,
+			logMessage.UploadedBits,
+			logMessage.TimeStamp)
 	}
 }
 
