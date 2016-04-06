@@ -11,8 +11,10 @@ rm -rf \test
 mkdir ..\test
 for /L %%a in (1,1,%numberOfClients%) do (
   mkdir ..\test\downloader\%%a
-  mkdir ..\test\seed\%%a
+  mkdir ..\test\seed
 )
+
+copy %filename% ..\test\seed
 
 start logger.exe 127.0.0.1 %loggerPort%
 

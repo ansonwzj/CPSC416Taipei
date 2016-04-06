@@ -553,7 +553,7 @@ func (ts *TorrentSession) Shutdown() (err error) {
 func (ts *TorrentSession) SendLog() {
 	var logReply loggerdata.LogReply
 	loggerMessage := loggerdata.LogMessage{
-		ClientName:     "HolyShit",
+		ClientName:     ts.Session.PeerID,
 		DownloadedBits: ts.Session.Downloaded,
 		UploadedBits:   ts.Session.Uploaded,
 		TimeStamp:      0}

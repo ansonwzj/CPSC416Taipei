@@ -17,19 +17,20 @@ var clientMap map[string]loggerdata.LogMessage = make(map[string]loggerdata.LogM
 var startTime time.Time = time.Now()
 
 func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerdata.LogReply) error {
-	log.Println("Received message from client")
+	//log.Println("Received message from client")
 	clientMap[logMessage.ClientName] = *logMessage
 	return nil
 }
 
 func ReportSwarmStatus() {
-	fmt.Println("ClientInfo: Data")
+	format := "%-20s %-20s %-20s %-20s\n"
+	fmt.Printf(format, "DownloadedBits", "UploadedBits", "Timestamp", "ClientID:")
 	for key, value := range clientMap {
-		fmt.Printf("%-15s: ", key)
-		fmt.Printf("DownLoadedBits %d,", value.DownloadedBits)
-		fmt.Printf("UploadedBits %d,", value.UploadedBits)
-		fmt.Printf("TimeStamp %d,", time.Since(startTime).Seconds())
-		fmt.Println()
+		fmt.Printf("%-20s %-20d %-20d %-20f\n",
+			key,
+			value.DownloadedBits,
+			value.UploadedBits,
+			time.Since(startTime).Seconds())
 	}
 }
 
@@ -45,7 +46,7 @@ func ServeRPC() {
 	logger := new(LoggerRPC)
 	rpc.Register(logger)
 	rpc.HandleHTTP()
-	log.Println("listening on" + ip + ":" + port)
+	log.Println("listening on: " + ip + ":" + port)
 	l, e := net.Listen("tcp", ip+":"+port)
 	if e != nil {
 		log.Fatal("listen error:", e)
