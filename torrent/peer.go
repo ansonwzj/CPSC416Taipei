@@ -43,9 +43,8 @@ type peerState struct {
 }
 
 func (p *peerState) creditDownload(length int64) {
-	log.Println(p.downloaded)
 	if p.downloaded.total == 0 {
-		test := NewAccumulator(time.Now(), 0)
+		test := NewAccumulator(time.Now(), time.Minute)
 		p.downloaded = *test
 	}
 
@@ -53,6 +52,10 @@ func (p *peerState) creditDownload(length int64) {
 }
 
 func (p *peerState) computeDownloadRate() {
+	if p.downloaded.total == 0 {
+		test := NewAccumulator(time.Now(), time.Minute)
+		p.downloaded = *test
+	}
 	// Has the side effect of computing the download rate.
 	p.downloaded.GetRate(time.Now())
 }
