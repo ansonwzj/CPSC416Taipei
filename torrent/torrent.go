@@ -749,7 +749,8 @@ func (ts *TorrentSession) chokePeers() (err error) {
 	for _, peer := range peers {
 		if peer.peer_interested {
 			peer.computeDownloadRate()
-			log.Printf("%s %g bps", peer.address, peer.DownloadBPS())
+			log.Printf("Download: %s %g bps", peer.address, peer.DownloadBPS())
+			log.Printf("Upload: %s %g bps", peer.address, peer.UploadBPS())
 			chokers = append(chokers, Choker(peer))
 		}
 	}
@@ -1319,6 +1320,7 @@ func (ts *TorrentSession) DoMetadata(msg []byte, p *peerState) {
 func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint32) (err error) {
 	if !peer.am_choking {
 		// log.Println("[", ts.M.Info.Name, "] Sending block", index, begin, length)
+		peer.creditUpload(int64(length))
 		buf := make([]byte, length+9)
 		buf[0] = PIECE
 		uint32ToBytes(buf[1:5], index)

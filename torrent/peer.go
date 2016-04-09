@@ -40,9 +40,25 @@ type peerState struct {
 	theirExtensions map[string]int
 
 	downloaded Accumulator
+	uploaded Accumulator
+}
+
+func (p *peerState) creditUpload(length int64) {
+	// log.Println("---------UPLOADED:", p.uploaded)
+	if p.uploaded.total == 0 {
+		test := NewAccumulator(time.Now(), time.Minute)
+		p.uploaded = *test
+	}
+
+	p.uploaded.Add(time.Now(), length)
+}
+
+func (p *peerState) UploadBPS() float32 {
+	return float32(p.uploaded.GetRateNoUpdate())
 }
 
 func (p *peerState) creditDownload(length int64) {
+	// log.Println("----------------DOWNLOADED:", p.downloaded)
 	if p.downloaded.total == 0 {
 		test := NewAccumulator(time.Now(), time.Minute)
 		p.downloaded = *test
