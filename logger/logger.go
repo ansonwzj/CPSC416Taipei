@@ -17,6 +17,8 @@ type LoggerRPC struct{}
 var clientMap map[string]loggerdata.LogMessage = make(map[string]loggerdata.LogMessage)
 var clientList *list.List = list.New()
 var startTime time.Time = time.Now()
+var downloadf *os.File
+var uploadf *os.File
 
 func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerdata.LogReply) error {
 	//log.Println("Received message from client")
@@ -29,14 +31,32 @@ func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerda
 	return nil
 }
 
+// Structure of csv:
+// DownLoadedBitsTable
+// | TimeStamp | ClientID# | ClientID2... |
+// | 2         | 2003      | 20132...     |
+// | 2         | 2003      | 20132...     |
+// | 2         | 2003      | 20132...     |
+
 func ReportSwarmStatus() {
-	format := "%-20s %-20s %-20s %-20s\n"
-	fmt.Printf(format, "ClientID:", "DownloadedBits", "UploadedBits", "Timestamp")
+
+	downloadAcc := fmt.Sprintf("%f", time.Since(startTime).Seconds())
+	uploadAcc := fmt.Sprintf("%f", time.Since(startTime).Seconds())
 
 	for e := clientList.Front(); e != nil; e = e.Next() {
 		clientID := e.Value.(string)
 		logMessage := clientMap[clientID]
 
+		downloadAcc = fmt.Sprintf("%s,%d", downloadAcc, logMessage.DownloadedBits)
+		uploadAcc = fmt.Sprintf("%s,%d", uploadAcc, logMessage.UploadedBits)
+	}
+
+	downloadf.WriteString(downloadAcc + "\n")
+	uploadf.WriteString(uploadAcc + "\n")
+
+	for e := clientList.Front(); e != nil; e = e.Next() {
+		clientID := e.Value.(string)
+		logMessage := clientMap[clientID]
 		fmt.Printf("%-20s %-20d %-20d %-20f\n",
 			clientID,
 			logMessage.DownloadedBits,
@@ -66,11 +86,19 @@ func ServeRPC() {
 }
 
 func main() {
-	fmt.Printf("Beginning logger")
+	fmt.Println("Beginning logger")
+	format := "%-20s %-20s %-20s %-20s\n"
+	fmt.Printf(format, "ClientID:", "DownloadedBits", "UploadedBits", "Timestamp")
+
+	downloadf, _ = os.OpenFile("download.csv", os.O_RDWR|os.O_CREATE, 0660)
+	uploadf, _ = os.OpenFile("upload.csv", os.O_RDWR|os.O_CREATE, 0660)
+	defer downloadf.Close()
+	defer uploadf.Close()
+
 	ServeRPC()
 
 	for {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second / 2)
 		ReportSwarmStatus()
 	}
 }
