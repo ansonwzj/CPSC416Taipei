@@ -181,11 +181,6 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 	if flags.UseDHT && !dhtAllowed {
 		log.Println("[", ts.M.Info.Name, "] Can't use DHT because torrent is marked Private")
 	}
-
-	if ts.flags.ShivizPort != "" {
-		ts.shivizLogger = govec.Initialize(ts.Session.PeerID, "shivizLog")
-	}
-
 	ts.Session = SessionInfo{
 		PeerID:        peerID(),
 		Port:          listenPort,
@@ -201,6 +196,14 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 	if !ts.Session.FromMagnet {
 		err = ts.load()
 	}
+
+
+	if ts.flags.ShivizPort != "" {
+		ts.shivizLogger = govec.Initialize(ts.Session.PeerID, "shivizLog")
+		go ts.readShiviz()
+	}
+
+
 	return ts, err
 }
 
@@ -1338,7 +1341,7 @@ func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint
 		peer.creditUpload(int64(length))
 
 		// 
-		// peer.sendShiviz()
+		ts.sendShiviz(peer)
 
 
 		buf := make([]byte, length+9)
@@ -1370,6 +1373,21 @@ func (ts *TorrentSession) isInteresting(p *peerState) bool {
 }
 
 
+func (ts *TorrentSession) readShiviz() {
+	conn, err := net.ListenPacket("udp", ":"+ts.flags.ShivizPort)
+	printErr(err)
+
+	for {
+		var buf [512]byte
+		_, _, err := conn.ReadFrom(buf[0:])
+		incommingMessage := new(Msg)
+		ts.shivizLogger.UnpackReceive("Received Message From Client", buf[0:], &incommingMessage)
+		fmt.Println(incommingMessage.String())
+		printErr(err)
+	}
+}
+
+
 // From Ivan's Example
 type Msg struct {
 	Content, RealTimestamp string
@@ -1379,11 +1397,11 @@ func (m Msg) String() string {
 	return "content: " + m.Content + "\ntime: " + m.RealTimestamp
 }
 
-func (ts *TorrentSession) sendShiviz() {
+func (ts *TorrentSession) sendShiviz(peer *peerState) {
 	outgoingMessage := Msg{"Piece!", time.Now().String()}
-	ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
-	// _, errWrite := p.shivizConn.Write(outBuf)
-	// printErr(errWrite)
+	outBuf := ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
+	_, errWrite := peer.shivizConn.Write(outBuf)
+	printErr(errWrite)
 }
 
 
