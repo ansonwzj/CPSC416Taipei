@@ -13,6 +13,7 @@ import (
 // about identity and download bandwidth.
 type Choker interface {
 	DownloadBPS() float32 // bps
+	UploadBPS() float32 // bps
 }
 
 type ChokePolicy interface {
@@ -45,6 +46,29 @@ func Shuffle(a []Choker) {
         j := rand.Intn(i + 1)
         a[i], a[j] = a[j], a[i]
     }
+}
+
+
+type DeficitBPS []Choker
+
+func (a DeficitBPS) Len() int {
+	return len(a)
+}
+
+func (a DeficitBPS) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a DeficitBPS) Less(i, j int) bool {
+	return (a[i].DownloadBPS() - a[i].UploadBPS()) > (a[j].DownloadBPS() - a[j].UploadBPS())
+}
+
+// Fair-Torrent Choke Policy
+type FairChokePolicy struct{}
+
+func (fcp *FairChokePolicy) Choke(chokers []Choker) (unchokeCount int, err error) {
+	sort.Sort(DeficitBPS(chokers))
+	return 4, nil
 }
 
 // Our interpretation of the classic bittorrent choke policy.
