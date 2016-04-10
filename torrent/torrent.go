@@ -148,7 +148,7 @@ type TorrentSession struct {
 	execOnSeedingDone    bool
 
 	// Shiviz Logger
-	shivizLogger		*govec.GoLog
+	shivizLogger *govec.GoLog
 }
 
 func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (t *TorrentSession, err error) {
@@ -161,7 +161,7 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 		quit:                 make(chan bool),
 		ended:                make(chan bool),
 		torrentFile:          torrent,
-		chokePolicy:          &ClassicChokePolicy{},
+		chokePolicy:          flags.ChokingPolicy,
 		chokePolicyHeartbeat: time.Tick(10 * time.Second),
 		execOnSeedingDone:    len(flags.ExecOnSeeding) == 0,
 	}
@@ -1336,13 +1336,12 @@ func (ts *TorrentSession) DoMetadata(msg []byte, p *peerState) {
 func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint32) (err error) {
 	if !peer.am_choking {
 		// log.Println("[", ts.M.Info.Name, "] Sending block", index, begin, length)
-		
+
 		// Update Upload Accumlator
 		peer.creditUpload(int64(length))
 
-		// 
-		ts.sendShiviz(peer)
 
+		ts.sendShiviz(peer)
 
 		buf := make([]byte, length+9)
 		buf[0] = PIECE
@@ -1387,7 +1386,6 @@ func (ts *TorrentSession) readShiviz() {
 	}
 }
 
-
 // From Ivan's Example
 type Msg struct {
 	Content, RealTimestamp string
@@ -1403,7 +1401,6 @@ func (ts *TorrentSession) sendShiviz(peer *peerState) {
 	_, errWrite := peer.shivizConn.Write(outBuf)
 	printErr(errWrite)
 }
-
 
 func min(a, b int) int {
 	if a < b {
@@ -1423,4 +1420,3 @@ func humanSize(value float64) string {
 	}
 	return fmt.Sprintf("%.2f B", value)
 }
-

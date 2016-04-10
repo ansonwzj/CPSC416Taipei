@@ -43,6 +43,7 @@ var (
 	maxActive           = flag.Int("maxActive", 16, "How many torrents should be active at a time. Torrents added beyond this value are queued.")
 	loggerAddress       = flag.String("loggerAddress", "", "This is meant for the testing environment, this is where torrentdata is logged for aggregation in swarm statistics")
 	shivizPort          = flag.String("shiviz", "", "This is the flag for which port the shiviz client should communciate through")
+	useChokingAlgorithm = flag.String("useChokingAlgorithm", "", "Specifies which choking algorithm to use for this client")
 )
 
 func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
@@ -59,6 +60,20 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		if err != nil {
 			log.Println(err)
 		}
+	}
+
+	var policy torrent.ChokePolicy
+	switch *useChokingAlgorithm {
+	case "Fair":
+		policy = &torrent.FairChokePolicy{}
+	case "Never":
+		policy = &torrent.NeverChokePolicy{}
+	case "Classic":
+		policy = &torrent.ClassicChokePolicy{}
+	case "Random":
+		policy = &torrent.RandomChokePolicy{}
+	default:
+		policy = &torrent.ClassicChokePolicy{}
 	}
 
 	flags = &torrent.TorrentFlags{
@@ -81,7 +96,8 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		QuickResume:        *quickResume,
 		MaxActive:          *maxActive,
 		LoggerService:      loggerService,
-		ShivizPort:			*shivizPort,
+		ShivizPort:         *shivizPort,
+		ChokingPolicy:      policy,
 	}
 	return
 }
