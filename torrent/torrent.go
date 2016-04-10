@@ -1340,8 +1340,9 @@ func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint
 		// Update Upload Accumlator
 		peer.creditUpload(int64(length))
 
-
-		ts.sendShiviz(peer)
+		if ts.flags.ShivizPort != "" {
+			ts.sendShiviz(peer)
+		}
 
 		buf := make([]byte, length+9)
 		buf[0] = PIECE
