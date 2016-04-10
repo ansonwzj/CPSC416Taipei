@@ -161,7 +161,7 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 		quit:                 make(chan bool),
 		ended:                make(chan bool),
 		torrentFile:          torrent,
-		chokePolicy:          &flags.ChokingPolicy,
+		chokePolicy:          flags.ChokingPolicy,
 		chokePolicyHeartbeat: time.Tick(10 * time.Second),
 		execOnSeedingDone:    len(flags.ExecOnSeeding) == 0,
 	}

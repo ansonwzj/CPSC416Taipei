@@ -62,18 +62,18 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		}
 	}
 
-	var policy ChokingPolicy
+	var policy torrent.ChokePolicy
 	switch *useChokingAlgorithm {
 	case "Fair":
-		policy = torrent.FairChokePolicy{}
+		policy = &torrent.FairChokePolicy{}
 	case "Never":
-		policy = torrent.NeverChokePolicy{}
+		policy = &torrent.NeverChokePolicy{}
 	case "Classic":
-		policy = torrent.ClassicChokePolicy{}
+		policy = &torrent.ClassicChokePolicy{}
 	case "Random":
-		policy = torrent.RandomChokePolicy{}
+		policy = &torrent.RandomChokePolicy{}
 	default:
-		policy = torrent.ClassicChokePolicy{}
+		policy = &torrent.ClassicChokePolicy{}
 	}
 
 	flags = &torrent.TorrentFlags{
@@ -97,7 +97,7 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		MaxActive:          *maxActive,
 		LoggerService:      loggerService,
 		ShivizPort:         *shivizPort,
-		ChokingPolicy:      *useChokingAlgorithm,
+		ChokingPolicy:      policy,
 	}
 	return
 }
