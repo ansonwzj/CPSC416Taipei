@@ -94,9 +94,9 @@ func main() {
 	format := "%-20s %-20s %-20s %-20s\n"
 	fmt.Printf(format, "ClientID:", "DownloadedBits", "UploadedBits", "Timestamp")
 
-	downloadf, _ = os.OpenFile("download.csv", os.O_RDWR|os.O_CREATE, 0660)
-	uploadf, _ = os.OpenFile("upload.csv", os.O_RDWR|os.O_CREATE, 0660)
-	ratiof, _ = os.OpenFile("ratiof.csv", os.O_RDWR|os.O_CREATE, 0660)
+	downloadf, _ = os.OpenFile("download.csv", os.O_WRONLY|os.O_SYNC|os.O_CREATE, 0644)
+	uploadf, _ = os.OpenFile("upload.csv", os.O_WRONLY|os.O_SYNC|os.O_CREATE, 0644)
+	ratiof, _ = os.OpenFile("ratiof.csv", os.O_WRONLY|os.O_SYNC|os.O_CREATE, 0644)
 	defer downloadf.Close()
 	defer ratiof.Close()
 	defer uploadf.Close()
