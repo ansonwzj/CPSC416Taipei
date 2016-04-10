@@ -6,8 +6,12 @@ import (
 	"log"
 	"net"
 	"time"
+	"os"
+	"fmt"
+	"strconv"
 
 	bencode "github.com/jackpal/bencode-go"
+	// "github.com/arcaneiceman/GoVector/govec"
 )
 
 const MAX_OUR_REQUESTS = 2
@@ -41,6 +45,8 @@ type peerState struct {
 
 	downloaded Accumulator
 	uploaded Accumulator
+
+	shivizConn		net.Conn
 }
 
 func (p *peerState) creditUpload(length int64) {
@@ -346,4 +352,30 @@ func (p *peerState) sendMetadataRequest(piece int) {
 	copy(msg[2:], raw.Bytes())
 
 	p.sendMessage(msg)
+}
+
+// Code Template from https://github.com/arcaneiceman/GoVector/blob/master/example/ClientServer.go
+func (p *peerState) addShivizConn(port string) {
+	rAddr, errR := net.ResolveUDPAddr("udp4", p.address)
+	printErr(errR)
+	val, errStrConv := strconv.Atoi(port)
+	printErr(errStrConv)
+	rAddr.Port = val
+	lAddr, errL := net.ResolveUDPAddr("udp4", ":0")
+	printErr(errL)
+
+	conn, errDial := net.DialUDP("udp", lAddr, rAddr)
+	printErr(errDial)
+	if (errR == nil) && (errL == nil) && (errDial == nil) {
+		p.conn = conn
+	}
+}
+
+
+// Code Template from https://github.com/arcaneiceman/GoVector/blob/master/example/ClientServer.go
+func printErr(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }

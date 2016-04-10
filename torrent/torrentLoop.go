@@ -46,6 +46,9 @@ type TorrentFlags struct {
 
 	//The address of the logger server to send results to
 	LoggerService *rpc.Client
+
+	// Choke Policy
+	ShivizPort string
 }
 
 func RunTorrents(flags *TorrentFlags, torrentFiles []string) (err error) {

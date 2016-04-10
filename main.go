@@ -42,6 +42,7 @@ var (
 	quickResume         = flag.Bool("quickResume", false, "Save torrenting data to resume faster. '-initialCheck' should be set to false, to prevent hash check on resume.")
 	maxActive           = flag.Int("maxActive", 16, "How many torrents should be active at a time. Torrents added beyond this value are queued.")
 	loggerAddress       = flag.String("loggerAddress", "", "This is meant for the testing environment, this is where torrentdata is logged for aggregation in swarm statistics")
+	shivizPort          = flag.String("shiviz", "", "This is the flag for which port the shiviz client should communciate through")
 )
 
 func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
@@ -80,6 +81,7 @@ func parseTorrentFlags() (flags *torrent.TorrentFlags, err error) {
 		QuickResume:        *quickResume,
 		MaxActive:          *maxActive,
 		LoggerService:      loggerService,
+		ShivizPort:			*shivizPort,
 	}
 	return
 }

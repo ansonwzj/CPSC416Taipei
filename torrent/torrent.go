@@ -23,6 +23,8 @@ import (
 	bencode "github.com/jackpal/bencode-go"
 	"github.com/nictuku/dht"
 	"github.com/nictuku/nettools"
+
+	"github.com/arcaneiceman/GoVector/govec"
 )
 
 const (
@@ -144,6 +146,9 @@ type TorrentSession struct {
 	chokePolicy          ChokePolicy
 	chokePolicyHeartbeat <-chan time.Time
 	execOnSeedingDone    bool
+
+	// Shiviz Logger
+	shivizLogger		*govec.GoLog
 }
 
 func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (t *TorrentSession, err error) {
@@ -175,6 +180,10 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 	dhtAllowed := flags.UseDHT && ts.M.Info.Private == 0
 	if flags.UseDHT && !dhtAllowed {
 		log.Println("[", ts.M.Info.Name, "] Can't use DHT because torrent is marked Private")
+	}
+
+	if ts.flags.ShivizPort != "" {
+		ts.shivizLogger = govec.Initialize(ts.Session.PeerID, "shivizLog")
 	}
 
 	ts.Session = SessionInfo{
@@ -475,6 +484,9 @@ func (ts *TorrentSession) addPeerImp(btconn *BtConn) {
 	ps := NewPeerState(btconn.conn)
 	ps.address = peer
 	ps.id = btconn.id
+	if ts.flags.ShivizPort != "" {
+		ps.addShivizConn(ts.flags.ShivizPort)
+	}
 
 	// By default, a peer has no pieces. If it has pieces, it should send
 	// a BITFIELD message as a first message
@@ -1321,7 +1333,14 @@ func (ts *TorrentSession) DoMetadata(msg []byte, p *peerState) {
 func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint32) (err error) {
 	if !peer.am_choking {
 		// log.Println("[", ts.M.Info.Name, "] Sending block", index, begin, length)
+		
+		// Update Upload Accumlator
 		peer.creditUpload(int64(length))
+
+		// 
+		// peer.sendShiviz()
+
+
 		buf := make([]byte, length+9)
 		buf[0] = PIECE
 		uint32ToBytes(buf[1:5], index)
@@ -1350,6 +1369,24 @@ func (ts *TorrentSession) isInteresting(p *peerState) bool {
 	return false
 }
 
+
+// From Ivan's Example
+type Msg struct {
+	Content, RealTimestamp string
+}
+
+func (m Msg) String() string {
+	return "content: " + m.Content + "\ntime: " + m.RealTimestamp
+}
+
+func (ts *TorrentSession) sendShiviz() {
+	outgoingMessage := Msg{"Piece!", time.Now().String()}
+	ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
+	// _, errWrite := p.shivizConn.Write(outBuf)
+	// printErr(errWrite)
+}
+
+
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -1368,3 +1405,4 @@ func humanSize(value float64) string {
 	}
 	return fmt.Sprintf("%.2f B", value)
 }
+
