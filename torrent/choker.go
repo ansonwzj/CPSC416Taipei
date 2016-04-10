@@ -3,6 +3,7 @@ package torrent
 import (
 	"math/rand"
 	"sort"
+	"time"
 	"log"
 )
 
@@ -25,6 +26,25 @@ type NeverChokePolicy struct{}
 
 func (n *NeverChokePolicy) Choke(chokers []Choker) (unchokeCount int, err error) {
 	return len(chokers), nil
+}
+
+// Random Choke Policy
+type RandomChokePolicy struct{}
+
+func (rcp *RandomChokePolicy) Choke(chokers []Choker) (unchokeCount int, err error) {
+	// Randomly Shuffle Choker List
+	rand.Seed(time.Now().UnixNano())
+	Shuffle(chokers)
+	// Unchoke a random number of peers 
+	return rand.Intn(len(chokers)), nil
+}
+
+
+func Shuffle(a []Choker) {
+    for i := range a {
+        j := rand.Intn(i + 1)
+        a[i], a[j] = a[j], a[i]
+    }
 }
 
 // Our interpretation of the classic bittorrent choke policy.
