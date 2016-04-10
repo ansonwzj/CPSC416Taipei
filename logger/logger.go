@@ -19,6 +19,7 @@ var clientList *list.List = list.New()
 var startTime time.Time = time.Now()
 var downloadf *os.File
 var uploadf *os.File
+var ratiof *os.File
 
 func (this *LoggerRPC) Log(logMessage *loggerdata.LogMessage, logReply *loggerdata.LogReply) error {
 	//log.Println("Received message from client")
@@ -42,6 +43,7 @@ func ReportSwarmStatus() {
 
 	downloadAcc := fmt.Sprintf("%f", time.Since(startTime).Seconds())
 	uploadAcc := fmt.Sprintf("%f", time.Since(startTime).Seconds())
+	ratioAcc := fmt.Sprintf("%f", time.Since(startTime).Seconds())
 
 	for e := clientList.Front(); e != nil; e = e.Next() {
 		clientID := e.Value.(string)
@@ -49,10 +51,12 @@ func ReportSwarmStatus() {
 
 		downloadAcc = fmt.Sprintf("%s,%d", downloadAcc, logMessage.DownloadedBits)
 		uploadAcc = fmt.Sprintf("%s,%d", uploadAcc, logMessage.UploadedBits)
+		ratioAcc = fmt.Sprintf("%s,%f", ratioAcc, logMessage.Percentage)
 	}
 
 	downloadf.WriteString(downloadAcc + "\n")
 	uploadf.WriteString(uploadAcc + "\n")
+	ratiof.WriteString(ratioAcc + "\n")
 
 	for e := clientList.Front(); e != nil; e = e.Next() {
 		clientID := e.Value.(string)
@@ -92,7 +96,9 @@ func main() {
 
 	downloadf, _ = os.OpenFile("download.csv", os.O_RDWR|os.O_CREATE, 0660)
 	uploadf, _ = os.OpenFile("upload.csv", os.O_RDWR|os.O_CREATE, 0660)
+	ratiof, _ = os.OpenFile("ratiof.csv", os.O_RDWR|os.O_CREATE, 0660)
 	defer downloadf.Close()
+	defer ratiof.Close()
 	defer uploadf.Close()
 
 	ServeRPC()

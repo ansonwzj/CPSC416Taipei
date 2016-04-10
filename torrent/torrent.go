@@ -556,6 +556,7 @@ func (ts *TorrentSession) SendLog() {
 		ClientName:     ts.Session.PeerID,
 		DownloadedBits: ts.Session.Downloaded,
 		UploadedBits:   ts.Session.Uploaded,
+		Percentage:     float32(ts.goodPieces*100) / float32(ts.totalPieces),
 		TimeStamp:      0}
 	err := ts.flags.LoggerService.Call("LoggerRPC.Log", &loggerMessage, &logReply)
 	if err != nil {
@@ -698,7 +699,7 @@ func (ts *TorrentSession) DoTorrent() {
 
 			//Send Statistics
 			if ts.flags.LoggerService != nil {
-				log.Println("Sending to logger")
+				//log.Println("Sending to logger")
 				ts.SendLog()
 			}
 
