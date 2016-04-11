@@ -1341,7 +1341,7 @@ func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint
 		peer.creditUpload(int64(length))
 
 		if ts.flags.ShivizPort != "" {
-			ts.sendShiviz(peer)
+			// ts.sendShiviz(peer)
 		}
 
 		buf := make([]byte, length+9)
