@@ -20,13 +20,13 @@ do
     trackerport=10000
     loggerport=10001
 
-    echo Which policy to use?
+    #echo Which policy to use?
     #read policy 
-    echo using: $policy
+    #echo using: $policy
 
     echo "Enter file to seed/track/whatever"
-    file="book.pdf"
-    #read file
+    #file="book.pdf"
+    read file
 
     #kills all running taipeis, Shit way of doing it 
     #ps aux | grep [C]PSC416Taipei | awk '{print $2}' | xargs -I pid pkill -9 pid
