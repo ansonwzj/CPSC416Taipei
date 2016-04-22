@@ -199,7 +199,7 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 
 
 	if ts.flags.ShivizPort != "" {
-		ts.shivizLogger = govec.Initialize(ts.Session.PeerID, "shivizLog")
+		ts.shivizLogger = govec.Initialize(strings.TrimPrefix(ts.Session.PeerID, "-"), "shivizLog")
 		go ts.readShiviz()
 	}
 
@@ -952,6 +952,10 @@ func (ts *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32)
 						haveMsg := make([]byte, 5)
 						haveMsg[0] = HAVE
 						uint32ToBytes(haveMsg[1:5], piece)
+						// if ts.flags.ShivizPort != "" {
+						// 	ts.sendShiviz(p, "Sending-A-HAVE-PIECE-MESSAGE")
+						// 	fmt.Println("Sending Shiviz Message")
+						// }
 						p.sendMessage(haveMsg)
 					}
 				}
@@ -1342,8 +1346,8 @@ func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint
 		peer.creditUpload(int64(length))
 
 		if ts.flags.ShivizPort != "" {
-			ts.sendShiviz(peer)
-			fmt.Println("Sending Shiviz")
+			ts.sendShiviz(peer, "Sending-A-Piece")
+			fmt.Println("Sending Shiviz Message")
 		}
 
 		buf := make([]byte, length+9)
@@ -1398,10 +1402,10 @@ func (m Msg) String() string {
 	return "content: " + m.Content + "\ntime: " + m.RealTimestamp
 }
 
-func (ts *TorrentSession) sendShiviz(peer *peerState) {
+func (ts *TorrentSession) sendShiviz(peer *peerState, message string) {
 	if (peer.shivizConn != nil) {
 		outgoingMessage := Msg{"Piece!", time.Now().String()}
-		outBuf := ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
+		outBuf := ts.shivizLogger.PrepareSend(message, outgoingMessage)
 		_, errWrite := peer.shivizConn.Write(outBuf)
 		printErr(errWrite)
 	} else {
