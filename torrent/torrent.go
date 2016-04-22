@@ -489,6 +489,7 @@ func (ts *TorrentSession) addPeerImp(btconn *BtConn) {
 	ps.id = btconn.id
 	if ts.flags.ShivizPort != "" {
 		ps.addShivizConn(ts.flags.ShivizPort)
+		fmt.Println("SET UP A CONNECTION FOR A PEER")
 	}
 
 	// By default, a peer has no pieces. If it has pieces, it should send
@@ -1341,7 +1342,8 @@ func (ts *TorrentSession) sendRequest(peer *peerState, index, begin, length uint
 		peer.creditUpload(int64(length))
 
 		if ts.flags.ShivizPort != "" {
-			// ts.sendShiviz(peer)
+			ts.sendShiviz(peer)
+			fmt.Println("Sending Shiviz")
 		}
 
 		buf := make([]byte, length+9)
@@ -1397,10 +1399,14 @@ func (m Msg) String() string {
 }
 
 func (ts *TorrentSession) sendShiviz(peer *peerState) {
-	outgoingMessage := Msg{"Piece!", time.Now().String()}
-	outBuf := ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
-	_, errWrite := peer.shivizConn.Write(outBuf)
-	printErr(errWrite)
+	if (peer.shivizConn != nil) {
+		outgoingMessage := Msg{"Piece!", time.Now().String()}
+		outBuf := ts.shivizLogger.PrepareSend("Sending-A-Piece", outgoingMessage)
+		_, errWrite := peer.shivizConn.Write(outBuf)
+		printErr(errWrite)
+	} else {
+		fmt.Println("ERROR SHIVIZ CONN IS NULL")
+	}
 }
 
 func min(a, b int) int {

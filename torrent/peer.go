@@ -364,10 +364,15 @@ func (p *peerState) addShivizConn(port string) {
 	lAddr, errL := net.ResolveUDPAddr("udp4", ":0")
 	printErr(errL)
 
+	// rAddr, errR := net.ResolveUDPAddr("udp4", ":"+"8085")
+	// printErr(errR)
+	// lAddr, errL := net.ResolveUDPAddr("udp4", ":"+"0")
+	// printErr(errL)
+
 	conn, errDial := net.DialUDP("udp", lAddr, rAddr)
 	printErr(errDial)
 	if (errR == nil) && (errL == nil) && (errDial == nil) {
-		p.conn = conn
+		p.shivizConn = conn
 	}
 }
 
